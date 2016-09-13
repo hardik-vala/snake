@@ -3,17 +3,19 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Hardik</title>
-		<!-- Icon made by Freepik (http://www.freepik.com) from www.flaticon.com -->
-		<link rel="shortcut icon" type="image/x-icon" href="images/space-ship.png">
+		<link rel="shortcut icon" type="image/x-icon" href="">
 		<link rel="stylesheet" media="all" href="styles.css">
 	</head>
 	<body>
-		<h1 class="masthead-name">Hardik Vala</h1>
-		<p>Facebook</p>
-		<p>Google Plus</p>
-		<p>GitHub</p>
-		<p>Resume</p>
-		<p>Contact</p>
-		<div class="mastfoot"></div>
+		<canvas id="mainCanvas" width="500px" height="500px"></canvas>	
+		
+		<script>
+			var c = document.getElementById("mainCanvas");
+			var ctx = c.getContext("2d");
+			ctx.beginPath();
+			ctx.arc(95, 50, 40, 0, 2*Math.PI);
+			ctx.stroke();
+		</script>
 	</body>
 </html>
+

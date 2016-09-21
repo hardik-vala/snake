@@ -1,5 +1,5 @@
 $(document).ready(function () {
-	c = document.getElementById("mainCanvas");
+	var c = $("#mainCanvas")[0];
 	var ctx = c.getContext("2d");
 	ctx.canvas.width = window.innerWidth;
 	ctx.canvas.height = window.innerHeight;

@@ -1,13 +1,14 @@
-// Initial (x, y) of the snake.
-INIT_SNAKE_X = 2;
-INIT_SNAKE_Y = 2;
-// Initial length of the snake in blocks.
-INIT_SNAKE_LENGTH = 5;
-
-// Amount of space in-between snake blocks as a factor of block size.
-BLOCK_SPACING_FACTOR = 1.25
-// Radius of a snake block in pixels.
-BLOCK_RADIUS = 5;
+var config = {
+	// Initial (x, y) of the snake.
+	INIT_SNAKE_X : 2,
+	INIT_SNAKE_Y : 2,
+	// Initial length of the snake in blocks.
+	INIT_SNAKE_LENGTH : 5,
+	// Amount of space in-between snake blocks as a factor of block size.
+	BLOCK_SPACING_FACTOR : 1.25,
+	// Radius of a snake block in pixels.
+	BLOCK_RADIUS : 5
+}
 
 $(document).ready(function() {
 	var c = $("#mainCanvas")[0];
@@ -17,20 +18,25 @@ $(document).ready(function() {
 	ctx.canvas.width = window.innerWidth;
 	ctx.canvas.height = window.innerHeight;
 
+	// Initialize snake.
 	var snake = initSnake(
-		INIT_SNAKE_X,
-		INIT_SNAKE_Y,
-		BLOCK_RADIUS,
-		INIT_SNAKE_LENGTH,
-		BLOCK_SPACING_FACTOR
+		config.INIT_SNAKE_X,
+		config.INIT_SNAKE_Y,
+		config.BLOCK_RADIUS,
+		config.INIT_SNAKE_LENGTH,
+		config.BLOCK_SPACING_FACTOR
 	);
 
+	// Draw the snake.
 	draw(snake, ctx);
 });
 
 function SnakeBlock(x, y, r) {
+	// x-coordinate.
 	this.x = x;
+	// y-coordinate.
 	this.y = y;
+	// Radius.
 	this.r = r;
 }
 

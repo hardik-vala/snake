@@ -24,6 +24,9 @@ $(document).ready(function() {
 	// Initialize the game board.
 	var board = new SnakeBoard(ctx, window.innerWidth, window.innerHeight);
 
+	// The game's pause switch.
+	var isPaused = true;
+
 	// Initialize snake.
 	var snake = new Snake(
 		config.INIT_SNAKE_X,
@@ -36,36 +39,50 @@ $(document).ready(function() {
 	// Draw the snake.
 	snake.draw(ctx);
 
-	// Allow arrow key presses to change the direction of the snake.
+	// Allow arrow key presses to change the direction of the snake and consequently unpause the game
+	// if its paused. Pressing the "p" key toggles the game pause.
 	$(this).keydown(function(key) {
 		switch(parseInt(key.which, 10)) {
+			// Left arrow.
 			case 37:
-				snake.goLeft();
+				if (snake.goLeft() && isPaused) isPaused = false;
 				break;
+			// Up arrow.
 			case 38:
-				snake.goUp();
+				if (snake.goUp() && isPaused) isPaused = false;
 				break;
+			// Right arrow.
 			case 39:
-				snake.goRight();
+				if (snake.goRight() && isPaused) isPaused = false;
 				break;
+			// Down arrow.
 			case 40:
-				snake.goDown();
+				if (snake.goDown() && isPaused) isPaused = false;
+				break;
+			// "p".
+			case 80:
+				isPaused = !isPaused;	
 				break;
 		}
 	})
 	
 	// Initiate the game loop.
 	gameLoop = setInterval(function () {
-		board.draw();
-		snake.move();
-		snake.draw(ctx);
+		if (!isPaused) {
+			board.draw();
+			snake.move();
+			snake.draw(ctx);
+		}
 	}, config.GAME_INTERVAL);
 
 });
 
 function SnakeBoard(ctx, width, height) {
+	// Context.
 	this.ctx = ctx;
+	// Board width;
 	this.width = width;
+	// Board height;
 	this.height = height;
 }
 
@@ -95,21 +112,29 @@ Snake.prototype.draw = function(ctx) {
 Snake.prototype.goRight = function() {
 	if (this.direction != "left")
 		this.direction = "right";
+
+	return this.direction == "right";
 }
 
 Snake.prototype.goLeft = function() {
 	if (this.direction != "right")
 		this.direction = "left";
+
+	return this.direction == "left";
 }
 
 Snake.prototype.goUp = function() {
 	if (this.direction != "down")
 		this.direction = "up";
+
+	return this.direction == "up";
 }
 
 Snake.prototype.goDown = function() {
 	if (this.direction != "up")
 		this.direction = "down";
+
+	return this.direction == "down";
 }
 
 Snake.prototype.move = function() {

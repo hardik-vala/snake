@@ -21,24 +21,29 @@ $(document).ready(function() {
 	ctx.canvas.width = window.innerWidth;
 	ctx.canvas.height = window.innerHeight;
 
-	// Initialize the game board.
-	var board = new SnakeBoard(ctx, window.innerWidth, window.innerHeight);
+	var board, isPaused, snake;
+	// Initialize the game.
+	function initGame() {
+		// Initialize the game board.
+		board = new SnakeBoard(ctx, window.innerWidth, window.innerHeight);
 
-	// The game's pause switch.
-	var isPaused = true;
+		// The game's pause switch.
+		isPaused = true;
 
-	// Initialize snake.
-	var snake = new Snake(
-		config.INIT_SNAKE_X,
-		config.INIT_SNAKE_Y,
-		config.BLOCK_RADIUS,
-		config.INIT_SNAKE_LENGTH,
-		config.BLOCK_SPACING
-	);
+		// Initialize the snake.
+		snake = new Snake(
+			config.INIT_SNAKE_X,
+			config.INIT_SNAKE_Y,
+			config.BLOCK_RADIUS,
+			config.INIT_SNAKE_LENGTH,
+			config.BLOCK_SPACING
+		);
+	}
+	initGame();
 
 	// Draw the snake.
 	snake.draw(ctx);
-
+	
 	// Allow arrow key presses to change the direction of the snake and consequently unpause the game
 	// if its paused. Pressing the "p" key toggles the game pause.
 	$(this).keydown(function(key) {
@@ -66,11 +71,17 @@ $(document).ready(function() {
 		}
 	})
 	
+	// Resetting the game is equivalent to re-initializing it.
+	var resetGame = initGame;
+
 	// Initiate the game loop.
 	gameLoop = setInterval(function () {
 		if (!isPaused) {
 			board.draw();
-			snake.move();
+			var nextBlock = snake.move();
+			// Reset the game if the snake goes out-of-bounds.
+			if (board.isOutOfBounds(nextBlock.x, nextBlock.y)) 
+				resetGame();
 			snake.draw(ctx);
 		}
 	}, config.GAME_INTERVAL);
@@ -89,6 +100,10 @@ function SnakeBoard(ctx, width, height) {
 SnakeBoard.prototype.draw = function() {
 	this.ctx.fillStyle = "#333"; 
 	this.ctx.fillRect(0, 0, this.width, this.height);
+}
+
+SnakeBoard.prototype.isOutOfBounds = function(x, y) {
+	return (x < 0 || y < 0);
 }
 
 function Snake(x, y, r, snakeLength, blockSpacing) {
@@ -158,6 +173,8 @@ Snake.prototype.move = function() {
 
 	// Add the updated last block as the next one.
 	this.blocks.unshift(tail);
+
+	return tail;
 }
 
 function SnakeBlock(x, y, r) {

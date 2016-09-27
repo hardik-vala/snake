@@ -35,6 +35,24 @@ $(document).ready(function() {
 
 	// Draw the snake.
 	snake.draw(ctx);
+
+	// Allow arrow key presses to change the direction of the snake.
+	$(this).keydown(function(key) {
+		switch(parseInt(key.which, 10)) {
+			case 37:
+				snake.goLeft();
+				break;
+			case 38:
+				snake.goUp();
+				break;
+			case 39:
+				snake.goRight();
+				break;
+			case 40:
+				snake.goDown();
+				break;
+		}
+	})
 	
 	// Initiate the game loop.
 	gameLoop = setInterval(function () {
@@ -59,9 +77,14 @@ SnakeBoard.prototype.draw = function() {
 function Snake(x, y, r, snakeLength, blockSpacing) {
 	this.blockSpacing = blockSpacing;
 
+	// Direction of the snake (right, left, up, or down), defaulting to right..
+	this.direction = "right";
+	
+	// Initialize the snake blocks, with the rightmost block at the front of the list.
 	this.blocks = [];
 	for (var i = snakeLength - 1; i >= 0; i--) 
 		this.blocks.push(new SnakeBlock(x + blockSpacing * i, y, r));
+
 }
 
 Snake.prototype.draw = function(ctx) {
@@ -69,9 +92,46 @@ Snake.prototype.draw = function(ctx) {
 		this.blocks[i].draw(ctx);
 }
 
+Snake.prototype.goRight = function() {
+	if (this.direction != "left")
+		this.direction = "right";
+}
+
+Snake.prototype.goLeft = function() {
+	if (this.direction != "right")
+		this.direction = "left";
+}
+
+Snake.prototype.goUp = function() {
+	if (this.direction != "down")
+		this.direction = "up";
+}
+
+Snake.prototype.goDown = function() {
+	if (this.direction != "up")
+		this.direction = "down";
+}
+
 Snake.prototype.move = function() {
+	// (x, y)-coordinates of the next block.
+	var nextX = this.blocks[0].x, nextY = this.blocks[0].y;
+
+	// Update the coordinates according to the current direction.
+	if (this.direction == "right")
+		nextX += this.blockSpacing;
+	else if (this.direction == "left")
+		nextX -= this.blockSpacing;
+	else if (this.direction == "up")
+		nextY -= this.blockSpacing;
+	else if (this.direction == "down")
+		nextY += this.blockSpacing;
+
+	// Pop the last block and set its (x, y)-coordinates to the next ones. 
 	var tail = this.blocks.pop();
-	tail.x = this.blocks[0].x + this.blockSpacing;
+	tail.x = nextX;
+	tail.y = nextY;
+
+	// Add the updated last block as the next one.
 	this.blocks.unshift(tail);
 }
 

@@ -5,7 +5,7 @@ var config = {
 	// Initial length of the snake in blocks.
 	INIT_SNAKE_LENGTH : 5,
 	// Amount of space in-between snake blocks.
-	BLOCK_SPACING : 1.25,
+	BLOCK_SPACING : 1,
 	// Radius of a snake block in pixels.
 	BLOCK_RADIUS : 5,
 	// Animation interval for the game (ms).

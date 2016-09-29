@@ -80,7 +80,7 @@ $(document).ready(function() {
 			board.draw();
 			var nextBlock = snake.move();
 			// Reset the game if the snake goes out-of-bounds.
-			if (board.isOutOfBounds(nextBlock.getPixelX(), nextBlock.getPixelY())) 
+			if (board.snakeBlockIsOutOfBounds(nextBlock)) 
 				resetGame();
 			snake.draw(ctx);
 		}
@@ -104,6 +104,14 @@ SnakeBoard.prototype.draw = function() {
 
 SnakeBoard.prototype.isOutOfBounds = function(x, y) {
 	return (x < 0 || y < 0 || x > this.width || y > this.height);
+}
+
+SnakeBoard.prototype.snakeBlockIsOutOfBounds = function(block) {
+	return (this.isOutOfBounds(block.getPixelX() - block.r, block.getPixelY())
+			|| this.isOutOfBounds(block.getPixelX(), block.getPixelY() - block.r)
+			|| this.isOutOfBounds(block.getPixelX() + block.r, block.getPixelY())
+			|| this.isOutOfBounds(block.getPixelX(), block.getPixelY() + block.r)
+	);
 }
 
 function Snake(x, y, r, snakeLength, blockSpacing) {

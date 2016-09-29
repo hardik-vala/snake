@@ -21,7 +21,14 @@ $(document).ready(function() {
 	ctx.canvas.width = window.innerWidth;
 	ctx.canvas.height = window.innerHeight;
 
-	var board, isPaused, snake;
+	// Generates bites for the snake to gobble.	
+	var biteGenerator = new BiteGenerator(
+		config.BLOCK_RADIUS,
+		window.innerWidth,
+		window.innerHeight
+	);
+
+	var board, isPaused, snake, bite;
 	// Initialize the game.
 	function initGame() {
 		// Initialize the game board.
@@ -38,11 +45,15 @@ $(document).ready(function() {
 			config.INIT_SNAKE_LENGTH,
 			config.BLOCK_SPACING
 		);
+	
+		// Initialize the first bite.
+		bite = biteGenerator.random();
 	}
 	initGame();
 
-	// Draw the snake.
+	// Draw the snake and the first bite.
 	snake.draw(ctx);
+	bite.draw(ctx);
 	
 	// Allow arrow key presses to change the direction of the snake and consequently unpause the game
 	// if its paused. Pressing the "p" key toggles the game pause.
@@ -78,11 +89,14 @@ $(document).ready(function() {
 	gameLoop = setInterval(function () {
 		if (!isPaused) {
 			board.draw();
+
 			var nextBlock = snake.move();
 			// Reset the game if the snake goes out-of-bounds.
-			if (board.snakeBlockIsOutOfBounds(nextBlock)) 
+			if (board.blockIsOutOfBounds(nextBlock)) 
 				resetGame();
 			snake.draw(ctx);
+			
+			bite.draw(ctx);
 		}
 	}, config.GAME_INTERVAL);
 
@@ -106,7 +120,7 @@ SnakeBoard.prototype.isOutOfBounds = function(x, y) {
 	return (x < 0 || y < 0 || x > this.width || y > this.height);
 }
 
-SnakeBoard.prototype.snakeBlockIsOutOfBounds = function(block) {
+SnakeBoard.prototype.blockIsOutOfBounds = function(block) {
 	return (this.isOutOfBounds(block.getPixelX() - block.r, block.getPixelY())
 			|| this.isOutOfBounds(block.getPixelX(), block.getPixelY() - block.r)
 			|| this.isOutOfBounds(block.getPixelX() + block.r, block.getPixelY())
@@ -185,7 +199,7 @@ Snake.prototype.move = function() {
 	return tail;
 }
 
-function SnakeBlock(x, y, r) {
+function GameBlock(x, y, r) {
 	// x-coordinate.
 	this.x = x;
 	// y-coordinate.
@@ -194,22 +208,50 @@ function SnakeBlock(x, y, r) {
 	this.r = r;
 }
 
-SnakeBlock.prototype.getPixelX = function() {
+GameBlock.prototype.getPixelX = function() {
 	// THe x-coordinate multipled by the block diameter.
 	return this.x * 2 * this.r;
 }
 
-SnakeBlock.prototype.getPixelY = function() {
+GameBlock.prototype.getPixelY = function() {
 	// THe y-coordinate multipled by the block diameter.
 	return this.y * 2 * this.r;
 }
 
-SnakeBlock.prototype.draw = function(ctx) {
+GameBlock.prototype.draw = function(ctx) {
 	var diameter = 2 * this.r;	
 	ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
 	ctx.beginPath();
 	ctx.arc(this.x * diameter, this.y * diameter, this.r, 0, 2 * Math.PI);
 	ctx.closePath();
 	ctx.fill();
+}
+
+function SnakeBlock(x, y, r) {
+	GameBlock.call(this, x, y, r);
+}
+
+SnakeBlock.prototype = Object.create(GameBlock.prototype);
+
+function BiteBlock(x, y, r) {
+	GameBlock.call(this, x, y, r);
+}
+
+BiteBlock.prototype = Object.create(GameBlock.prototype);
+
+function BiteGenerator(r, width, height) {
+	// Bite radius.
+	this.r = r;
+	// Board width.
+	this.width = width;
+	// Board height.
+	this.height = height;
+}
+
+BiteGenerator.prototype.random = function () {
+	var diameter = 2 * this.r;
+	var x = Math.random() * (this.width - diameter) / diameter;
+	var y = Math.random() * (this.height - diameter) / diameter;
+	return new BiteBlock(x, y, this.r)
 }
 

@@ -9,7 +9,7 @@ var config = {
 	// Radius of a snake block in pixels.
 	BLOCK_RADIUS : 5,
 	// Animation interval for the game (ms).
-	GAME_INTERVAL : 100
+	GAME_INTERVAL : 80
 }
 
 $(document).ready(function() {
@@ -250,8 +250,8 @@ function BiteGenerator(r, width, height) {
 
 BiteGenerator.prototype.random = function () {
 	var diameter = 2 * this.r;
-	var x = Math.random() * (this.width - diameter) / diameter;
-	var y = Math.random() * (this.height - diameter) / diameter;
+	var x = Math.floor(Math.random() * (this.width - diameter) / diameter);
+	var y = Math.floor(Math.random() * (this.height - diameter) / diameter);
 	return new BiteBlock(x, y, this.r)
 }
 

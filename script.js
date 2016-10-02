@@ -94,8 +94,14 @@ $(document).ready(function() {
 			// Reset the game if the snake goes out-of-bounds.
 			if (board.blockIsOutOfBounds(nextBlock)) 
 				resetGame();
+			// Grow the snake if it happens to "gobble" a bite, and then generate a new random
+			// bite.
+			else if (nextBlock.x == bite.x && nextBlock.y == bite.y) {
+				snake.grow();
+				bite = biteGenerator.random();
+			}
+
 			snake.draw(ctx);
-			
 			bite.draw(ctx);
 		}
 	}, config.GAME_INTERVAL);
@@ -129,6 +135,7 @@ SnakeBoard.prototype.blockIsOutOfBounds = function(block) {
 }
 
 function Snake(x, y, r, snakeLength, blockSpacing) {
+	this.r = r;
 	this.blockSpacing = blockSpacing;
 
 	// Direction of the snake (right, left, up, or down), defaulting to right..
@@ -174,7 +181,7 @@ Snake.prototype.goDown = function() {
 	return this.direction == "down";
 }
 
-Snake.prototype.move = function() {
+Snake.prototype.getNextXY = function() {
 	// (x, y)-coordinates of the next block.
 	var nextX = this.blocks[0].x, nextY = this.blocks[0].y;
 
@@ -188,15 +195,31 @@ Snake.prototype.move = function() {
 	else if (this.direction == "down")
 		nextY += this.blockSpacing;
 
+	return {x: nextX, y: nextY};
+}
+
+Snake.prototype.move = function() {
+	nextXY = this.getNextXY();
+
 	// Pop the last block and set its (x, y)-coordinates to the next ones. 
 	var tail = this.blocks.pop();
-	tail.x = nextX;
-	tail.y = nextY;
+	tail.x = nextXY.x;
+	tail.y = nextXY.y;
 
 	// Add the updated last block as the next one.
 	this.blocks.unshift(tail);
 
 	return tail;
+}
+
+Snake.prototype.grow = function() {
+	nextXY = this.getNextXY();
+	nextBlock = new SnakeBlock(nextXY.x, nextXY.y, this.r);
+	
+	// Add the next block to the front.
+	this.blocks.unshift(nextBlock);
+
+	return nextBlock;
 }
 
 function GameBlock(x, y, r) {
@@ -250,8 +273,8 @@ function BiteGenerator(r, width, height) {
 
 BiteGenerator.prototype.random = function () {
 	var diameter = 2 * this.r;
-	var x = Math.floor(Math.random() * (this.width - diameter) / diameter);
-	var y = Math.floor(Math.random() * (this.height - diameter) / diameter);
+	var x = Math.round(Math.random() * (this.width - diameter) / diameter);
+	var y = Math.round(Math.random() * (this.height - diameter) / diameter);
 	return new BiteBlock(x, y, this.r)
 }
 

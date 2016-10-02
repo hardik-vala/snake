@@ -91,8 +91,8 @@ $(document).ready(function() {
 			board.draw();
 
 			var nextBlock = snake.move();
-			// Reset the game if the snake goes out-of-bounds.
-			if (board.blockIsOutOfBounds(nextBlock)) 
+			// Reset the game if the snake self-collides or goes out-of-bounds.
+			if (!nextBlock || board.blockIsOutOfBounds(nextBlock)) 
 				resetGame();
 			// Grow the snake if it happens to "gobble" a bite, and then generate a new random
 			// bite.
@@ -198,8 +198,21 @@ Snake.prototype.getNextXY = function() {
 	return {x: nextX, y: nextY};
 }
 
+Snake.prototype.isCovered = function(x, y) {
+	for (var i = 0; i < this.blocks.length; i++) {
+		if (this.blocks[i].x == x && this.blocks[i].y == y)
+			return true;
+	}
+
+	return false;
+}
+
 Snake.prototype.move = function() {
 	nextXY = this.getNextXY();
+
+	// Self-collision.
+	if (this.isCovered(nextXY.x, nextXY.y))
+		return null;
 
 	// Pop the last block and set its (x, y)-coordinates to the next ones. 
 	var tail = this.blocks.pop();

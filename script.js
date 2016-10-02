@@ -256,7 +256,9 @@ GameBlock.prototype.getPixelY = function() {
 
 GameBlock.prototype.draw = function(ctx) {
 	var diameter = 2 * this.r;	
-	ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+	ctx.shadowBlur = 10;
+	ctx.shadowColor = "black";
+	ctx.fillStyle = "#888";
 	ctx.beginPath();
 	ctx.arc(this.x * diameter, this.y * diameter, this.r, 0, 2 * Math.PI);
 	ctx.closePath();

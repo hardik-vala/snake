@@ -16,23 +16,26 @@ $(document).ready(function() {
 	var c = $("#mainCanvas")[0];
 	var ctx = c.getContext("2d");
 
+	var windowWidth = window.innerWidth;
+	var windowHeight = window.innerHeight;
+
 	// Stretch the canvas across the fullscreen. (For some odd reason, it must be done outside the
 	// snake board.)
-	ctx.canvas.width = window.innerWidth;
-	ctx.canvas.height = window.innerHeight;
+	ctx.canvas.width = windowWidth;
+	ctx.canvas.height = windowHeight;
 
 	// Generates bites for the snake to gobble.	
 	var biteGenerator = new BiteGenerator(
 		config.BLOCK_RADIUS,
-		window.innerWidth,
-		window.innerHeight
+		windowWidth,
+		windowHeight
 	);
 
-	var board, isPaused, snake, bite;
+	var board, isPaused, snake, bite, score;
 	// Initialize the game.
 	function initGame() {
 		// Initialize the game board.
-		board = new SnakeBoard(ctx, window.innerWidth, window.innerHeight);
+		board = new SnakeBoard(ctx, windowWidth, windowHeight);
 
 		// The game's pause switch.
 		isPaused = true;
@@ -48,6 +51,9 @@ $(document).ready(function() {
 	
 		// Initialize the first bite.
 		bite = biteGenerator.random();
+
+		// Initialize the game score.
+		score = 0;
 	}
 	initGame();
 
@@ -55,6 +61,13 @@ $(document).ready(function() {
 	snake.draw(ctx);
 	bite.draw(ctx);
 	
+	// Display the game score.
+	function displayScore() {
+		ctx.shadowBlur = 0;
+		ctx.fillText("Score: " + score, 5, windowHeight - 5);
+	}
+	displayScore();	
+
 	// Allow arrow key presses to change the direction of the snake and consequently unpause the game
 	// if its paused. Pressing the "p" key toggles the game pause.
 	$(this).keydown(function(key) {
@@ -99,10 +112,12 @@ $(document).ready(function() {
 			else if (nextBlock.x == bite.x && nextBlock.y == bite.y) {
 				snake.grow();
 				bite = biteGenerator.random();
+				score++;
 			}
 
 			snake.draw(ctx);
 			bite.draw(ctx);
+			displayScore();
 		}
 	}, config.GAME_INTERVAL);
 

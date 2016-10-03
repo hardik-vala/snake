@@ -9,7 +9,9 @@ var config = {
 	// Radius of a snake block in pixels.
 	BLOCK_RADIUS : 5,
 	// Animation interval for the game (ms).
-	GAME_INTERVAL : 65 
+	GAME_INTERVAL : 65,
+	// Interval for the flashing animation of bites (ms).
+	BITE_FLASH_INTERVAL : 500
 }
 
 $(document).ready(function() {
@@ -29,6 +31,7 @@ $(document).ready(function() {
 		config.BLOCK_RADIUS,
 		windowWidth,
 		windowHeight,
+		config.BITE_FLASH_INTERVAL,
 		ctx
 	);
 
@@ -65,6 +68,7 @@ $(document).ready(function() {
 	
 	// Display the game score.
 	function displayScore() {
+		ctx.fillStyle = "#888";
 		ctx.shadowBlur = 0;
 		ctx.fillText("Score: " + score, 5, windowHeight - 5);
 	}
@@ -97,8 +101,12 @@ $(document).ready(function() {
 		}
 	})
 	
-	// Resetting the game is equivalent to re-initializing it.
-	var resetGame = initGame;
+	// Resetting the game is equivalent to re-initializing it, with the additional step of clearing
+	// the current bite.
+	var resetGame = function() {
+		bite.clear();
+		initGame();
+	}
 
 	// Initiate the game loop.
 	gameLoop = setInterval(function () {
@@ -113,6 +121,7 @@ $(document).ready(function() {
 			// bite.
 			else if (nextBlock.x == bite.x && nextBlock.y == bite.y) {
 				snake.grow();
+				bite.clear();
 				bite = biteGenerator.random();
 				score++;
 			}
@@ -276,9 +285,9 @@ GameBlock.prototype.getPixelY = function() {
 
 GameBlock.prototype.draw = function() {
 	var diameter = 2 * this.r;	
+	this.ctx.fillStyle = "#888";
 	this.ctx.shadowBlur = 10;
 	this.ctx.shadowColor = "black";
-	this.ctx.fillStyle = "#888";
 	this.ctx.beginPath();
 	this.ctx.arc(this.x * diameter, this.y * diameter, this.r, 0, 2 * Math.PI);
 	this.ctx.closePath();
@@ -291,19 +300,48 @@ function SnakeBlock(x, y, r, ctx) {
 
 SnakeBlock.prototype = Object.create(GameBlock.prototype);
 
-function BiteBlock(x, y, r, ctx) {
+function BiteBlock(x, y, r, flashInterval, ctx) {
 	GameBlock.call(this, x, y, r, ctx);
+	this.flashInterval = flashInterval;
+
+	this.flashSwitch = true;
+	var self = this;
+	this.flashingAnimationLoop = setInterval(function () {
+		self.flashSwitch = !self.flashSwitch;
+	}, this.flashInterval);
 }
 
 BiteBlock.prototype = Object.create(GameBlock.prototype);
 
-function BiteGenerator(r, width, height, ctx) {
+BiteBlock.prototype.draw = function() {
+	var diameter = 2 * this.r;
+
+	if (this.flashSwitch)	
+		this.ctx.fillStyle = "#BBB";
+	else
+		this.ctx.fillStyle = "#888";
+
+	this.ctx.shadowBlur = 10;
+	this.ctx.shadowColor = "black";
+	this.ctx.beginPath();
+	this.ctx.arc(this.x * diameter, this.y * diameter, this.r, 0, 2 * Math.PI);
+	this.ctx.closePath();
+	this.ctx.fill();
+}
+
+BiteBlock.prototype.clear = function() {
+	clearInterval(this.flashingAnimationLoop);
+}
+
+function BiteGenerator(r, width, height, flashInterval, ctx) {
 	// Bite radius.
 	this.r = r;
 	// Board width.
 	this.width = width;
 	// Board height.
 	this.height = height;
+	// Interval (ms) for the flashing animation.
+	this.flashInterval = flashInterval;
 	// Context.
 	this.ctx = ctx;
 }
@@ -312,6 +350,6 @@ BiteGenerator.prototype.random = function () {
 	var diameter = 2 * this.r;
 	var x = Math.round(Math.random() * (this.width - diameter) / diameter);
 	var y = Math.round(Math.random() * (this.height - diameter) / diameter);
-	return new BiteBlock(x, y, this.r, this.ctx);
+	return new BiteBlock(x, y, this.r, this.flashInterval, this.ctx);
 }
 

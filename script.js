@@ -28,7 +28,8 @@ $(document).ready(function() {
 	var biteGenerator = new BiteGenerator(
 		config.BLOCK_RADIUS,
 		windowWidth,
-		windowHeight
+		windowHeight,
+		ctx
 	);
 
 	var board, isPaused, snake, bite, score;
@@ -46,7 +47,8 @@ $(document).ready(function() {
 			config.INIT_SNAKE_Y,
 			config.BLOCK_RADIUS,
 			config.INIT_SNAKE_LENGTH,
-			config.BLOCK_SPACING
+			config.BLOCK_SPACING,
+			ctx
 		);
 	
 		// Initialize the first bite.
@@ -58,8 +60,8 @@ $(document).ready(function() {
 	initGame();
 
 	// Draw the snake and the first bite.
-	snake.draw(ctx);
-	bite.draw(ctx);
+	snake.draw();
+	bite.draw();
 	
 	// Display the game score.
 	function displayScore() {
@@ -115,8 +117,8 @@ $(document).ready(function() {
 				score++;
 			}
 
-			snake.draw(ctx);
-			bite.draw(ctx);
+			snake.draw();
+			bite.draw();
 			displayScore();
 		}
 	}, config.GAME_INTERVAL);
@@ -149,9 +151,10 @@ SnakeBoard.prototype.blockIsOutOfBounds = function(block) {
 	);
 }
 
-function Snake(x, y, r, snakeLength, blockSpacing) {
+function Snake(x, y, r, snakeLength, blockSpacing, ctx) {
 	this.r = r;
 	this.blockSpacing = blockSpacing;
+	this.ctx = ctx;
 
 	// Direction of the snake (right, left, up, or down), defaulting to right..
 	this.direction = "right";
@@ -159,13 +162,13 @@ function Snake(x, y, r, snakeLength, blockSpacing) {
 	// Initialize the snake blocks, with the rightmost block at the front of the list.
 	this.blocks = [];
 	for (var i = snakeLength - 1; i >= 0; i--) 
-		this.blocks.push(new SnakeBlock(x + blockSpacing * i, y, r));
+		this.blocks.push(new SnakeBlock(x + blockSpacing * i, y, r, ctx));
 
 }
 
-Snake.prototype.draw = function(ctx) {
+Snake.prototype.draw = function() {
 	for (var i = 0; i < this.blocks.length; i++) 
-		this.blocks[i].draw(ctx);
+		this.blocks[i].draw();
 }
 
 Snake.prototype.goRight = function() {
@@ -242,7 +245,7 @@ Snake.prototype.move = function() {
 
 Snake.prototype.grow = function() {
 	nextXY = this.getNextXY();
-	nextBlock = new SnakeBlock(nextXY.x, nextXY.y, this.r);
+	nextBlock = new SnakeBlock(nextXY.x, nextXY.y, this.r, this.ctx);
 	
 	// Add the next block to the front.
 	this.blocks.unshift(nextBlock);
@@ -250,13 +253,15 @@ Snake.prototype.grow = function() {
 	return nextBlock;
 }
 
-function GameBlock(x, y, r) {
+function GameBlock(x, y, r, ctx) {
 	// x-coordinate.
 	this.x = x;
 	// y-coordinate.
 	this.y = y;
 	// Radius.
 	this.r = r;
+	// Context.
+	this.ctx = ctx;
 }
 
 GameBlock.prototype.getPixelX = function() {
@@ -269,42 +274,44 @@ GameBlock.prototype.getPixelY = function() {
 	return this.y * 2 * this.r;
 }
 
-GameBlock.prototype.draw = function(ctx) {
+GameBlock.prototype.draw = function() {
 	var diameter = 2 * this.r;	
-	ctx.shadowBlur = 10;
-	ctx.shadowColor = "black";
-	ctx.fillStyle = "#888";
-	ctx.beginPath();
-	ctx.arc(this.x * diameter, this.y * diameter, this.r, 0, 2 * Math.PI);
-	ctx.closePath();
-	ctx.fill();
+	this.ctx.shadowBlur = 10;
+	this.ctx.shadowColor = "black";
+	this.ctx.fillStyle = "#888";
+	this.ctx.beginPath();
+	this.ctx.arc(this.x * diameter, this.y * diameter, this.r, 0, 2 * Math.PI);
+	this.ctx.closePath();
+	this.ctx.fill();
 }
 
-function SnakeBlock(x, y, r) {
-	GameBlock.call(this, x, y, r);
+function SnakeBlock(x, y, r, ctx) {
+	GameBlock.call(this, x, y, r, ctx);
 }
 
 SnakeBlock.prototype = Object.create(GameBlock.prototype);
 
-function BiteBlock(x, y, r) {
-	GameBlock.call(this, x, y, r);
+function BiteBlock(x, y, r, ctx) {
+	GameBlock.call(this, x, y, r, ctx);
 }
 
 BiteBlock.prototype = Object.create(GameBlock.prototype);
 
-function BiteGenerator(r, width, height) {
+function BiteGenerator(r, width, height, ctx) {
 	// Bite radius.
 	this.r = r;
 	// Board width.
 	this.width = width;
 	// Board height.
 	this.height = height;
+	// Context.
+	this.ctx = ctx;
 }
 
 BiteGenerator.prototype.random = function () {
 	var diameter = 2 * this.r;
 	var x = Math.round(Math.random() * (this.width - diameter) / diameter);
 	var y = Math.round(Math.random() * (this.height - diameter) / diameter);
-	return new BiteBlock(x, y, this.r)
+	return new BiteBlock(x, y, this.r, this.ctx);
 }
 

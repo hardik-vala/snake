@@ -62,15 +62,22 @@ $(document).ready(function() {
 	}
 	initGame();
 
-	// Draw the snake and the first bite.
+	// Draw the board, snake, and the first bite.
+	board.draw();
 	snake.draw();
 	bite.draw();
 	
 	// Display the game score.
 	function displayScore() {
 		ctx.fillStyle = "#888";
+
+		var oldFont = ctx.font;
+		var fontSize = 16;
+		ctx.font = fontSize + "px Arial";
 		ctx.shadowBlur = 0;
-		ctx.fillText("Score: " + score, 5, windowHeight - 5);
+		ctx.fillText("Score: " + score, fontSize / 2, windowHeight - fontSize / 2);
+
+		ctx.font = oldFont;
 	}
 	displayScore();	
 
@@ -112,6 +119,7 @@ $(document).ready(function() {
 	gameLoop = setInterval(function () {
 		if (!isPaused) {
 			board.draw();
+			displayScore();
 
 			var nextBlock = snake.move();
 			// Reset the game if the snake self-collides or goes out-of-bounds.
@@ -128,7 +136,6 @@ $(document).ready(function() {
 
 			snake.draw();
 			bite.draw();
-			displayScore();
 		}
 	}, config.GAME_INTERVAL);
 
@@ -146,6 +153,23 @@ function SnakeBoard(ctx, width, height) {
 SnakeBoard.prototype.draw = function() {
 	this.ctx.fillStyle = "#333"; 
 	this.ctx.fillRect(0, 0, this.width, this.height);
+
+	this.drawMastHead();
+}
+
+SnakeBoard.prototype.drawMastHead = function() {	
+	this.ctx.fillStyle = "#555";
+
+	var oldFont = this.ctx.font;
+	var fontSize = 48;
+	this.ctx.font = "bold " + fontSize + "px Arial Black";
+	
+	var mastHeadText = "H  a  r  d  i  k    V  a  l  a";
+	var textWidth = this.ctx.measureText(mastHeadText).width;
+	this.ctx.fillText(mastHeadText, (this.width - textWidth) / 2, this.height / 2 - fontSize / 2);
+
+	// Restore font.
+	this.ctx.font = oldFont;
 }
 
 SnakeBoard.prototype.isOutOfBounds = function(x, y) {

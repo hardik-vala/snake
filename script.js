@@ -163,6 +163,7 @@ SnakeBoard.prototype.drawMastHead = function() {
 	var oldFont = this.ctx.font;
 	var fontSize = 48;
 	this.ctx.font = "bold " + fontSize + "px Arial Black";
+	this.ctx.shadowBlur = 0;
 	
 	var mastHeadText = "H  a  r  d  i  k    V  a  l  a";
 	var textWidth = this.ctx.measureText(mastHeadText).width;

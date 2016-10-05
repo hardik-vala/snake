@@ -201,7 +201,7 @@ function Snake(x, y, r, snakeLength, blockSpacing, ctx) {
 }
 
 Snake.prototype.draw = function() {
-	for (var i = 0; i < this.blocks.length; i++) 
+	for (var i = this.blocks.length - 1; i >= 0; i--) 
 		this.blocks[i].draw();
 }
 

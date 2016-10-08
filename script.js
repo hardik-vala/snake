@@ -36,6 +36,17 @@ $(document).ready(function() {
 	);
 
 	var board, isPaused, snake, bite, score;
+
+	function generateNextBite() {
+		if (!bite)
+			bite = biteGenerator.random();
+
+		while (snake.isCovered(bite.x, bite.y)) {
+			bite.clear();
+			bite = biteGenerator.random();
+		}
+	}
+
 	// Initialize the game.
 	function initGame() {
 		// Initialize the game board.
@@ -55,7 +66,7 @@ $(document).ready(function() {
 		);
 	
 		// Initialize the first bite.
-		bite = biteGenerator.random();
+		generateNextBite();
 
 		// Initialize the game score.
 		score = 0;
@@ -129,8 +140,7 @@ $(document).ready(function() {
 			// bite.
 			else if (nextBlock.x == bite.x && nextBlock.y == bite.y) {
 				snake.grow();
-				bite.clear();
-				bite = biteGenerator.random();
+				generateNextBite();
 				score++;
 			}
 
@@ -371,7 +381,7 @@ function BiteGenerator(r, width, height, flashInterval, ctx) {
 	this.ctx = ctx;
 }
 
-BiteGenerator.prototype.random = function () {
+BiteGenerator.prototype.random = function() {
 	var diameter = 2 * this.r;
 	var x = Math.round(Math.random() * (this.width - diameter) / diameter);
 	var y = Math.round(Math.random() * (this.height - diameter) / diameter);

@@ -26,6 +26,9 @@ $(document).ready(function() {
 	ctx.canvas.width = windowWidth;
 	ctx.canvas.height = windowHeight;
 
+	// Wrapper for screen context.
+	var screenContext = new ScreenContext(ctx);
+
 	// Generates bites for the snake to gobble.	
 	var biteGenerator = new BiteGenerator(
 		config.BLOCK_RADIUS,
@@ -38,9 +41,7 @@ $(document).ready(function() {
 	var board, isPaused, snake, bite, score;
 
 	function generateNextBite() {
-		if (!bite)
-			bite = biteGenerator.random();
-
+		bite = biteGenerator.random();
 		while (snake.isCovered(bite.x, bite.y)) {
 			bite.clear();
 			bite = biteGenerator.random();
@@ -73,11 +74,6 @@ $(document).ready(function() {
 	}
 	initGame();
 
-	// Draw the board, snake, and the first bite.
-	board.draw();
-	snake.draw();
-	bite.draw();
-	
 	// Display the game score.
 	function displayScore() {
 		ctx.fillStyle = "#888";
@@ -90,7 +86,15 @@ $(document).ready(function() {
 
 		ctx.font = oldFont;
 	}
-	displayScore();	
+
+	// Draw the board, snake, bite, and the score.
+	function draw() {
+		board.draw();
+		snake.draw();
+		bite.draw();
+		displayScore();	
+	}
+	draw();
 
 	// Allow arrow key presses to change the direction of the snake and consequently unpause the game
 	// if its paused. Pressing the "p" key toggles the game pause.
@@ -127,11 +131,8 @@ $(document).ready(function() {
 	}
 
 	// Initiate the game loop.
-	gameLoop = setInterval(function () {
+	gameLoop = setInterval(function() {
 		if (!isPaused) {
-			board.draw();
-			displayScore();
-
 			var nextBlock = snake.move();
 			// Reset the game if the snake self-collides or goes out-of-bounds.
 			if (!nextBlock || board.blockIsOutOfBounds(nextBlock)) 
@@ -144,12 +145,35 @@ $(document).ready(function() {
 				score++;
 			}
 
-			snake.draw();
-			bite.draw();
+			draw();
 		}
 	}, config.GAME_INTERVAL);
 
 });
+
+
+function ScreenContext(ctx) {
+	// Context.
+	this.ctx = ctx;
+}
+
+ScreenContext.prototype.modify = function(mapOfAttToModVals, action) {
+	var oldAttVals = {};
+	for (var att in mapOfAttToModVals) {
+		if (mapOfAttToModVals.hasOwnProperty(att) && this.ctx.hasOwnProperty(att)) {
+			oldAttVals[att] = this.ctx[att];
+			this.ctx[att] = mapOfAttToModVals[att];
+		}
+	}
+
+	action();
+
+	// Restore.
+	for (var att in mapOfAttToModVals) {
+		if (mapOfAttToModVals.hasOwnProperty(att) && this.ctx.hasOwnProperty(att))
+			this.ctx[att] = oldAttVals[att];
+	}
+}
 
 function SnakeBoard(ctx, width, height) {
 	// Context.

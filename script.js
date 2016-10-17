@@ -35,7 +35,7 @@ $(document).ready(function() {
 		windowWidth,
 		windowHeight,
 		config.BITE_FLASH_INTERVAL,
-		ctx
+		screenContext
 	);
 
 	var board, isPaused, snake, bite, score;
@@ -51,7 +51,7 @@ $(document).ready(function() {
 	// Initialize the game.
 	function initGame() {
 		// Initialize the game board.
-		board = new SnakeBoard(ctx, windowWidth, windowHeight);
+		board = new SnakeBoard(screenContext, windowWidth, windowHeight);
 
 		// The game's pause switch.
 		isPaused = true;
@@ -63,7 +63,7 @@ $(document).ready(function() {
 			config.BLOCK_RADIUS,
 			config.INIT_SNAKE_LENGTH,
 			config.BLOCK_SPACING,
-			ctx
+			screenContext
 		);
 	
 		// Initialize the first bite.
@@ -76,15 +76,13 @@ $(document).ready(function() {
 
 	// Display the game score.
 	function displayScore() {
-		ctx.fillStyle = "#888";
-
-		var oldFont = ctx.font;
 		var fontSize = 16;
-		ctx.font = fontSize + "px Arial";
-		ctx.shadowBlur = 0;
-		ctx.fillText("Score: " + score, fontSize / 2, windowHeight - fontSize / 2);
-
-		ctx.font = oldFont;
+		screenContext.modify({
+			fillStyle: "#888",
+			font: fontSize + "px Arial"
+		}, function() {
+			screenContext.ctx.fillText("Score: " + score, fontSize / 2, windowHeight - fontSize / 2);
+		});	
 	}
 
 	// Draw the board, snake, bite, and the score.
@@ -121,7 +119,7 @@ $(document).ready(function() {
 				isPaused = !isPaused;	
 				break;
 		}
-	})
+	});
 	
 	// Resetting the game is equivalent to re-initializing it, with the additional step of clearing
 	// the current bite.
@@ -158,9 +156,10 @@ function ScreenContext(ctx) {
 }
 
 ScreenContext.prototype.modify = function(mapOfAttToModVals, action) {
+	// Store the current attribute values before changing them.
 	var oldAttVals = {};
 	for (var att in mapOfAttToModVals) {
-		if (mapOfAttToModVals.hasOwnProperty(att) && this.ctx.hasOwnProperty(att)) {
+		if (mapOfAttToModVals.hasOwnProperty(att)) {
 			oldAttVals[att] = this.ctx[att];
 			this.ctx[att] = mapOfAttToModVals[att];
 		}
@@ -168,16 +167,16 @@ ScreenContext.prototype.modify = function(mapOfAttToModVals, action) {
 
 	action();
 
-	// Restore.
+	// Restore the attributes.
 	for (var att in mapOfAttToModVals) {
-		if (mapOfAttToModVals.hasOwnProperty(att) && this.ctx.hasOwnProperty(att))
+		if (mapOfAttToModVals.hasOwnProperty(att))
 			this.ctx[att] = oldAttVals[att];
 	}
 }
 
-function SnakeBoard(ctx, width, height) {
-	// Context.
-	this.ctx = ctx;
+function SnakeBoard(screenContext, width, height) {
+	// Screen context.
+	this.screenContext = screenContext;
 	// Board width;
 	this.width = width;
 	// Board height;
@@ -185,26 +184,30 @@ function SnakeBoard(ctx, width, height) {
 }
 
 SnakeBoard.prototype.draw = function() {
-	this.ctx.fillStyle = "#333"; 
-	this.ctx.fillRect(0, 0, this.width, this.height);
-
-	this.drawMastHead();
+	var self = this;
+	this.screenContext.modify({
+		fillStyle : "#333"
+	}, function() {
+		self.screenContext.ctx.fillRect(0, 0, self.width, self.height);
+		self.drawMastHead();
+	});
 }
 
-SnakeBoard.prototype.drawMastHead = function() {	
-	this.ctx.fillStyle = "#555";
-
-	var oldFont = this.ctx.font;
+SnakeBoard.prototype.drawMastHead = function() {
+	var self = this;
 	var fontSize = 48;
-	this.ctx.font = "bold " + fontSize + "px Arial Black";
-	this.ctx.shadowBlur = 0;
-	
-	var mastHeadText = "H  a  r  d  i  k    V  a  l  a";
-	var textWidth = this.ctx.measureText(mastHeadText).width;
-	this.ctx.fillText(mastHeadText, (this.width - textWidth) / 2, this.height / 2 - fontSize / 2);
-
-	// Restore font.
-	this.ctx.font = oldFont;
+	this.screenContext.modify({
+		fillStyle : "#555",
+		font : "bold " + fontSize + "px Arial Black"
+	}, function() {
+		var mastHeadText = "H  a  r  d  i  k    V  a  l  a";
+		var textWidth = self.screenContext.ctx.measureText(mastHeadText).width;
+		self.screenContext.ctx.fillText(
+			mastHeadText,
+			(self.width - textWidth) / 2,
+			self.height / 2 - fontSize / 2
+		);
+	});
 }
 
 SnakeBoard.prototype.isOutOfBounds = function(x, y) {
@@ -219,10 +222,10 @@ SnakeBoard.prototype.blockIsOutOfBounds = function(block) {
 	);
 }
 
-function Snake(x, y, r, snakeLength, blockSpacing, ctx) {
+function Snake(x, y, r, snakeLength, blockSpacing, screenContext) {
 	this.r = r;
 	this.blockSpacing = blockSpacing;
-	this.ctx = ctx;
+	this.screenContext = screenContext;
 
 	// Direction of the snake (right, left, up, or down), defaulting to right..
 	this.direction = "right";
@@ -230,7 +233,7 @@ function Snake(x, y, r, snakeLength, blockSpacing, ctx) {
 	// Initialize the snake blocks, with the rightmost block at the front of the list.
 	this.blocks = [];
 	for (var i = snakeLength - 1; i >= 0; i--) 
-		this.blocks.push(new SnakeBlock(x + blockSpacing * i, y, r, ctx));
+		this.blocks.push(new SnakeBlock(x + blockSpacing * i, y, r, screenContext));
 
 }
 
@@ -313,7 +316,7 @@ Snake.prototype.move = function() {
 
 Snake.prototype.grow = function() {
 	nextXY = this.getNextXY();
-	nextBlock = new SnakeBlock(nextXY.x, nextXY.y, this.r, this.ctx);
+	nextBlock = new SnakeBlock(nextXY.x, nextXY.y, this.r, this.screenContext);
 	
 	// Add the next block to the front.
 	this.blocks.unshift(nextBlock);
@@ -321,15 +324,15 @@ Snake.prototype.grow = function() {
 	return nextBlock;
 }
 
-function GameBlock(x, y, r, ctx) {
+function GameBlock(x, y, r, screenContext) {
 	// x-coordinate.
 	this.x = x;
 	// y-coordinate.
 	this.y = y;
 	// Radius.
 	this.r = r;
-	// Context.
-	this.ctx = ctx;
+	// Screen context.
+	this.screenContext = screenContext;
 }
 
 GameBlock.prototype.getPixelX = function() {
@@ -343,24 +346,28 @@ GameBlock.prototype.getPixelY = function() {
 }
 
 GameBlock.prototype.draw = function() {
+	var self = this;
 	var diameter = 2 * this.r;	
-	this.ctx.fillStyle = "#888";
-	this.ctx.shadowBlur = 10;
-	this.ctx.shadowColor = "black";
-	this.ctx.beginPath();
-	this.ctx.arc(this.x * diameter, this.y * diameter, this.r, 0, 2 * Math.PI);
-	this.ctx.closePath();
-	this.ctx.fill();
+	this.screenContext.modify({
+		fillStyle : "#888",
+		shadowBlur : 10,
+		shadowColor : "black"
+	}, function() {
+		self.screenContext.ctx.beginPath();
+		self.screenContext.ctx.arc(self.x * diameter, self.y * diameter, self.r, 0, 2 * Math.PI);
+		self.screenContext.ctx.closePath();
+		self.screenContext.ctx.fill();
+	});
 }
 
-function SnakeBlock(x, y, r, ctx) {
-	GameBlock.call(this, x, y, r, ctx);
+function SnakeBlock(x, y, r, screenContext) {
+	GameBlock.call(this, x, y, r, screenContext);
 }
 
 SnakeBlock.prototype = Object.create(GameBlock.prototype);
 
-function BiteBlock(x, y, r, flashInterval, ctx) {
-	GameBlock.call(this, x, y, r, ctx);
+function BiteBlock(x, y, r, flashInterval, screenContext) {
+	GameBlock.call(this, x, y, r, screenContext);
 	this.flashInterval = flashInterval;
 
 	this.flashSwitch = true;
@@ -373,26 +380,26 @@ function BiteBlock(x, y, r, flashInterval, ctx) {
 BiteBlock.prototype = Object.create(GameBlock.prototype);
 
 BiteBlock.prototype.draw = function() {
+	var self = this;
 	var diameter = 2 * this.r;
-
-	if (this.flashSwitch)	
-		this.ctx.fillStyle = "#BBB";
-	else
-		this.ctx.fillStyle = "#888";
-
-	this.ctx.shadowBlur = 10;
-	this.ctx.shadowColor = "black";
-	this.ctx.beginPath();
-	this.ctx.arc(this.x * diameter, this.y * diameter, this.r, 0, 2 * Math.PI);
-	this.ctx.closePath();
-	this.ctx.fill();
+	this.screenContext.modify({
+		fillStyle : (this.flashSwitch) ? "#BBB" : "#888",
+		shadowBlur : 10,
+		shadowColor : "black"
+	}, function() {
+		self.screenContext.ctx.beginPath();
+		self.screenContext.ctx.arc(self.x * diameter, self.y * diameter, self.r, 0, 2 * Math.PI);
+		self.screenContext.ctx.closePath();
+		self.screenContext.ctx.fill();
+	
+	});
 }
 
 BiteBlock.prototype.clear = function() {
 	clearInterval(this.flashingAnimationLoop);
 }
 
-function BiteGenerator(r, width, height, flashInterval, ctx) {
+function BiteGenerator(r, width, height, flashInterval, screenContext) {
 	// Bite radius.
 	this.r = r;
 	// Board width.
@@ -401,14 +408,14 @@ function BiteGenerator(r, width, height, flashInterval, ctx) {
 	this.height = height;
 	// Interval (ms) for the flashing animation.
 	this.flashInterval = flashInterval;
-	// Context.
-	this.ctx = ctx;
+	// Screen context.
+	this.screenContext = screenContext;
 }
 
 BiteGenerator.prototype.random = function() {
 	var diameter = 2 * this.r;
 	var x = Math.round(Math.random() * (this.width - diameter) / diameter);
 	var y = Math.round(Math.random() * (this.height - diameter) / diameter);
-	return new BiteBlock(x, y, this.r, this.flashInterval, this.ctx);
+	return new BiteBlock(x, y, this.r, this.flashInterval, this.screenContext);
 }
 

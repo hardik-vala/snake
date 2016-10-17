@@ -190,6 +190,7 @@ SnakeBoard.prototype.draw = function() {
 	}, function() {
 		self.screenContext.ctx.fillRect(0, 0, self.width, self.height);
 		self.drawMastHead();
+		self.drawCopyright();
 	});
 }
 
@@ -206,6 +207,23 @@ SnakeBoard.prototype.drawMastHead = function() {
 			mastHeadText,
 			(self.width - textWidth) / 2,
 			self.height / 2 - fontSize / 2
+		);
+	});
+}
+
+SnakeBoard.prototype.drawCopyright = function() {
+	var self = this;
+	var fontSize = 14;
+	this.screenContext.modify({
+		fillStyle : "#555",
+		font : fontSize + "px Arial"
+	}, function() {
+		var copyrightText = "\u00A9 Hardik Vala 2016";
+		var textWidth = self.screenContext.ctx.measureText(copyrightText).width;
+		self.screenContext.ctx.fillText(
+			copyrightText,
+			(self.width - textWidth) / 2,
+			self.height - 3 * fontSize
 		);
 	});
 }

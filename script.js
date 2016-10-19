@@ -9,7 +9,7 @@ var config = {
 	// Radius of a snake block in pixels.
 	BLOCK_RADIUS : 5,
 	// Animation interval for the game (ms).
-	GAME_INTERVAL : 65,
+	GAME_INTERVAL : 60,
 	// Interval for the flashing animation of bites (ms).
 	BITE_FLASH_INTERVAL : 500
 }
